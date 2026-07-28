@@ -1,11 +1,23 @@
-# docker-compose up -d
-version: '3'
+# XGate Check — self-hosted diagnostics (fork of jason5ng32/MyIP)
+# Prod target: check.xgate.online (NL/CH node + Caddy reverse_proxy)
+# Dev: docker compose up -d → http://localhost:18966
 services:
-    myip:
-        container_name: myip
-        image: jason5ng32/myip:latest # my-app: x.x.x
-        stdin_open: true # docker run -i interactive mode
-        tty: true        # docker run -t terminal mode
-        restart: always # restart policy / on-failure:5 restart 5 times / always restart forever / unless-stopped unless stopped / no never restart
-        ports:
-            - "18966:18966"
+  xgate-check:
+    image: jason5ng32/myip:latest
+    # After custom build: image: wormalien/xgate-check:latest
+    container_name: xgate-check
+    ports:
+      - "18966:18966"
+    environment:
+      MAXMIND_ACCOUNT_ID: "${MAXMIND_ACCOUNT_ID:-}"
+      MAXMIND_LICENSE_KEY: "${MAXMIND_LICENSE_KEY:-}"
+      MAXMIND_AUTO_UPDATE: "${MAXMIND_AUTO_UPDATE:-true}"
+      VITE_SITE_URL: "${VITE_SITE_URL:-https://check.xgate.online}"
+      # GA required by build; disable for client privacy
+      VITE_GOOGLE_ANALYTICS_ID: "${VITE_GOOGLE_ANALYTICS_ID:-disabled}"
+    volumes:
+      - maxmind_db:/app/common/maxmind-db
+    restart: unless-stopped
+
+volumes:
+  maxmind_db:
